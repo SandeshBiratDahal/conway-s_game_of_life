@@ -27,7 +27,8 @@ class GameOfLife:
         return self.state[(x * self.cell_size, y * self.cell_size)]
     
     def set_cell_state(self, x: int, y: int, state: bool):
-        self.state[(x * self.cell_size, y * self.cell_size)] = state
+        if not x < 0 and x <= self.x_bound and not y < 0 and y <= self.y_bound:
+            self.state[(x * self.cell_size, y * self.cell_size)] = state
 
     def flip_cell_state(self, x: int, y: int):
         if self.get_cell_state(x, y): self.set_cell_state(x, y, False)
