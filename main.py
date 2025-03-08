@@ -17,7 +17,6 @@ class World:
         }
 
         self.x_bound, self.y_bound = self.width // self.cell_size - 1, self.height // self.cell_size - 1
-        print(self.x_bound, self.y_bound)
 
     def render(self, surf: pg.Surface):
         for cell_position, cell_state in self.state.items():
@@ -81,6 +80,15 @@ class World:
             for j in range(self.height // self.cell_size)
         }
 
+        for cell_position, cell_state in self.state.items():
+            number_of_neighbors = self.get_number_of_neighbors(cell_position[0] // self.cell_size, cell_position[1] // self.cell_size)
+            if number_of_neighbors < 2 and cell_state: buffer_state[cell_position] = False
+            elif number_of_neighbors > 3 and cell_state: buffer_state[cell_position] = False
+            elif number_of_neighbors == 3 and not cell_state: buffer_state[cell_position] = True
+            elif (number_of_neighbors == 2 or number_of_neighbors == 3) and cell_state: buffer_state[cell_position] = True
+
+        self.state = buffer_state.copy()
+
 def main():
 
     grid = World(800, 800, 20)
@@ -91,10 +99,12 @@ def main():
         for event in events:
             if event.type == pg.QUIT: sys.exit()
 
+            if event.type == pg.KEYDOWN: grid.update_grid()
+
             if event.type == pg.MOUSEBUTTONDOWN:
                 grid.flip_cell_state(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size)
 
-                print(grid.get_number_of_neighbors(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size))
+                #print(grid.get_number_of_neighbors(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size))
 
         scr.fill((0, 0, 0))
         grid.render(scr)
