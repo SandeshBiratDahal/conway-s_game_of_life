@@ -4,7 +4,7 @@ pg.init()
 scr = pg.display.set_mode((800, 800))
 clock = pg.time.Clock()
 
-class World:
+class GameOfLife:
     def __init__(self, width: int, height: int, cell_size: int):
         self.width = width
         self.height = height
@@ -91,23 +91,44 @@ class World:
 
 def main():
 
-    grid = World(800, 800, 20)
+    grid = GameOfLife(800, 800, 20)
+
+    mouse_down = False
+    erasing = False
+    autoplay = False
+
+    tick = 0
     
     while True:
+        tick += 1
         events = pg.event.get()
         mouse = pg.mouse.get_pos()
         for event in events:
             if event.type == pg.QUIT: sys.exit()
 
-            if event.type == pg.KEYDOWN: grid.update_grid()
+            if event.type == pg.KEYDOWN: 
+                if event.key == pg.K_SPACE: grid.update_grid()
+                elif event.key == pg.K_p: autoplay = not autoplay
 
             if event.type == pg.MOUSEBUTTONDOWN:
-                grid.flip_cell_state(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size)
+                mouse_down = True
+                if event.button == 1: erasing = False
+                elif event.button == 3: erasing = True
 
-                #print(grid.get_number_of_neighbors(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size))
+            if event.type == pg.MOUSEBUTTONUP:
+                mouse_down = False
+                erasing = False
 
         scr.fill((0, 0, 0))
+
+        if autoplay and not tick % 10: grid.update_grid()
+
+        if mouse_down:
+            if not erasing: grid.set_cell_state(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size, True)
+            else: grid.set_cell_state(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size, False)
+
         grid.render(scr)
+        clock.tick(60)
         pg.display.flip()
 
 if __name__ == "__main__":
