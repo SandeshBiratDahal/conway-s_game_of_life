@@ -1,21 +1,17 @@
-import pygame as pg, sys
+import pygame as pg, sys, random, time
 
 pg.init()
-scr = pg.display.set_mode((800, 800))
-clock = pg.time.Clock()
 
 class GameOfLife:
     def __init__(self, width: int, height: int, cell_size: int):
         self.width = width
         self.height = height
         self.cell_size = cell_size
-
         self.state = {
             (i * self.cell_size, j * self.cell_size): False
             for i in range(self.width // self.cell_size)
             for j in range(self.height // self.cell_size)
         }
-
         self.x_bound, self.y_bound = self.width // self.cell_size - 1, self.height // self.cell_size - 1
 
     def render(self, surf: pg.Surface):
@@ -90,9 +86,15 @@ class GameOfLife:
 
         self.state = buffer_state.copy()
 
-def main():
+    def randomize(self):
+        for cell_position, cell_state in self.state.items():
+            self.set_cell_state(cell_position[0] // self.cell_size, cell_position[1] // self.cell_size, bool(random.randint(0, 1)))
 
-    grid = GameOfLife(800, 800, 20)
+def main():
+    grid = GameOfLife(800, 800, 10)
+
+    scr = pg.display.set_mode((800, 800))
+    clock = pg.time.Clock()
 
     mouse_down = False
     erasing = False
@@ -122,15 +124,30 @@ def main():
 
         scr.fill((0, 0, 0))
 
-        if autoplay and not tick % 10: grid.update_grid()
+        if autoplay: grid.update_grid()
 
         if mouse_down:
             if not erasing: grid.set_cell_state(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size, True)
             else: grid.set_cell_state(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size, False)
 
         grid.render(scr)
-        clock.tick(60)
+        clock.tick(120)
         pg.display.flip()
+
+def get_rendered_frames(number_of_frames: int, game: GameOfLife):
+    frames = []
+
+    surface = pg.Surface((game.width, game.height))
+    for _ in range(number_of_frames):
+        surface.fill((0, 0, 0))
+        game.render(surface)
+        frames.append(surface.copy())
+        game.update_grid()
+
+    return frames
+
+def save_frames(frames: pg.Surface, path: str):
+    for i, frame in enumerate(frames): pg.image.save(frame, f"{path}frame{i}.jpeg")
 
 if __name__ == "__main__":
     main()
