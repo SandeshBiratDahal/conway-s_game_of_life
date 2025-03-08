@@ -11,10 +11,13 @@ class World:
         self.cell_size = cell_size
 
         self.state = {
-            (i * cell_size, j * cell_size): False if (i + j) % 2 else True
+            (i * self.cell_size, j * self.cell_size): False
             for i in range(self.width // self.cell_size)
             for j in range(self.height // self.cell_size)
         }
+
+        self.x_bound, self.y_bound = self.width // self.cell_size - 1, self.height // self.cell_size - 1
+        print(self.x_bound, self.y_bound)
 
     def render(self, surf: pg.Surface):
         for cell_position, cell_state in self.state.items():
@@ -31,6 +34,53 @@ class World:
         if self.get_cell_state(x, y): self.set_cell_state(x, y, False)
         else: self.set_cell_state(x, y, True)
 
+    def check_up(self, x: int, y: int):
+        if y - 1 < 0: return False
+        return self.get_cell_state(x, y - 1)
+    
+    def check_down(self, x: int, y: int):
+        if y + 1 > self.y_bound: return False
+        return self.get_cell_state(x, y + 1)
+    
+    def check_left(self, x: int, y: int):
+        if x - 1 < 0: return False
+        return self.get_cell_state(x - 1, y)
+    
+    def check_right(self, x: int, y: int):
+        if x + 1 > self.x_bound: return False
+        return self.get_cell_state(x + 1, y)
+    
+    def check_upper_left(self, x: int, y: int):
+        if x - 1 < 0 or y - 1 < 0: return False
+        return self.get_cell_state(x - 1, y - 1)
+    
+    def check_upper_right(self, x: int, y: int):
+        if x + 1 > self.x_bound or y - 1 < 0: return False
+        return self.get_cell_state(x + 1, y - 1)
+    
+    def check_lower_left(self, x: int, y: int):
+        if x - 1 < 0 or y + 1 > self.y_bound: return False
+        return self.get_cell_state(x - 1, y + 1)
+    
+    def check_lower_right(self, x: int, y: int):
+        if x + 1 > self.x_bound or y + 1 > self.y_bound: return False
+        return self.get_cell_state(x + 1, y + 1)
+    
+    def get_number_of_neighbors(self, x: int, y: int):
+        return int(
+            self.check_down(x, y) + self.check_up(x, y) +
+            self.check_right(x, y) + self.check_left(x, y) +
+            self.check_lower_left(x, y) + self.check_lower_right(x, y) +
+            self.check_upper_left(x, y) + self.check_upper_right(x, y)
+        )
+
+    def update_grid(self):
+        buffer_state = {
+            (i * self.cell_size, j * self.cell_size): False
+            for i in range(self.width // self.cell_size)
+            for j in range(self.height // self.cell_size)
+        }
+
 def main():
 
     grid = World(800, 800, 20)
@@ -43,6 +93,8 @@ def main():
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 grid.flip_cell_state(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size)
+
+                print(grid.get_number_of_neighbors(mouse[0] // grid.cell_size, mouse[1] // grid.cell_size))
 
         scr.fill((0, 0, 0))
         grid.render(scr)
